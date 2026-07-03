@@ -6,10 +6,11 @@ export default function handler(req, res) {
         });
     }
 
-    console.log(req.body);
+    console.log("Incoming data:", req.body);
 
     return res.status(200).json({
         success: true,
-        message: "Report received!"
+        message: "Report received!",
+        received: req.body
     });
 }
