@@ -1,5 +1,6 @@
-// api/report.js
-module.exports = async function handler(req, res) {
+import { supabase } from "../lib/supabase.js"; // Note the crucial '.js' extension
+
+export default async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({
             success: false,
@@ -10,8 +11,9 @@ module.exports = async function handler(req, res) {
     const data = req.body;
     console.log("Received payload:", data);
 
-    const { type, placeId, serverId, pet } = data;
+    const { type, placeId, serverId, pet, scannerId } = data;
 
+    // Handle Heartbeats
     if (type === "heartbeat") {
         return res.status(200).json({
             success: true,
@@ -19,9 +21,27 @@ module.exports = async function handler(req, res) {
         });
     }
 
+    // Handle Pet Reports
     if (type === "report" && pet) {
+        // 1. Insert report details into your Supabase Database
+        const { error: dbError } = await supabase
+            .from("reports")
+            .insert([
+                {
+                    scannerId: scannerId,
+                    species: pet.species,
+                    serverId: serverId
+                }
+            ]);
+
+        if (dbError) {
+            console.error("[Supabase Error] Failed to log spawn:", dbError);
+        } else {
+            console.log("[Supabase] Successfully logged spawn for:", pet.species);
+        }
+
+        // 2. Forward to Discord Webhook
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-        
         if (webhookUrl) {
             const attributesText = Object.keys(pet.attributes).length > 0 
                 ? Object.entries(pet.attributes).map(([k, v]) => `• **${k}**: ${v}`).join("\n") 
