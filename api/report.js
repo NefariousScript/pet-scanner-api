@@ -1,26 +1,33 @@
-const reports = []; // temporary storage (resets when server restarts)
+const reports = [];
 
 export default function handler(req, res) {
-    if (req.method !== "POST") {
-        return res.status(405).json({
-            success: false,
-            message: "Method Not Allowed"
+
+    // VIEW DATA
+    if (req.method === "GET") {
+        return res.status(200).json({
+            success: true,
+            reports
         });
     }
 
-    const data = req.body;
+    // SAVE DATA
+    if (req.method === "POST") {
+        const data = req.body;
 
-    console.log("Incoming:", data);
+        reports.push({
+            id: Date.now(),
+            data
+        });
 
-    // Save report
-    reports.push({
-        id: Date.now(),
-        data
-    });
+        return res.status(200).json({
+            success: true,
+            message: "Saved to memory",
+            totalStored: reports.length
+        });
+    }
 
-    return res.status(200).json({
-        success: true,
-        message: "Saved to memory",
-        totalStored: reports.length
+    return res.status(405).json({
+        success: false,
+        message: "Method Not Allowed"
     });
 }
