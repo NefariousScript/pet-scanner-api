@@ -45,5 +45,4 @@ export default async function handler(req, res) {
         success: false,
         message: "Method not allowed"
     });
-}
- 
+} 
