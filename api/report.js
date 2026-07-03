@@ -1,33 +1,48 @@
-let reports = []; // temporary storage
+import { supabase } from "../lib/supabase.js";
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
 
-    // GET = view stored data
-    if (req.method === "GET") {
+    if (req.method === "POST") {
+        const { scannerId, species, serverId } = req.body;
+
+        const { error } = await supabase
+            .from("reports")
+            .insert([{ scannerId, species, serverId }]);
+
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+
         return res.status(200).json({
             success: true,
-            reports: reports
+            message: "Saved to Supabase"
         });
     }
 
-    // POST = add new data
-    if (req.method === "POST") {
-        const data = req.body;
+    if (req.method === "GET") {
+        const { data, error } = await supabase
+            .from("reports")
+            .select("*")
+            .order("id", { ascending: false });
 
-        reports.push({
-            id: Date.now(),
-            data: data
-        });
+        if (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
 
         return res.status(200).json({
             success: true,
-            message: "Saved",
-            total: reports.length
+            data
         });
     }
 
     return res.status(405).json({
         success: false,
-        message: "Method Not Allowed"
+        message: "Method not allowed"
     });
 }
