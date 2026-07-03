@@ -1,3 +1,5 @@
+const reports = []; // temporary storage (resets when server restarts)
+
 export default function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({
@@ -6,11 +8,19 @@ export default function handler(req, res) {
         });
     }
 
-    console.log("Incoming data:", req.body);
+    const data = req.body;
+
+    console.log("Incoming:", data);
+
+    // Save report
+    reports.push({
+        id: Date.now(),
+        data
+    });
 
     return res.status(200).json({
         success: true,
-        message: "Report received!",
-        received: req.body
+        message: "Saved to memory",
+        totalStored: reports.length
     });
 }
