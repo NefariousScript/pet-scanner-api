@@ -1,4 +1,5 @@
-import { supabase } from "../lib/supabase.js"; // Note the crucial '.js' extension
+// api/report.js
+import { supabase } from "../lib/supabase.js";
 
 export default async function handler(req, res) {
     if (req.method !== "POST") {
@@ -13,7 +14,6 @@ export default async function handler(req, res) {
 
     const { type, placeId, serverId, pet, scannerId } = data;
 
-    // Handle Heartbeats
     if (type === "heartbeat") {
         return res.status(200).json({
             success: true,
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
         });
     }
 
-    // Handle Pet Reports
     if (type === "report" && pet) {
         // 1. Insert report details into your Supabase Database
         const { error: dbError } = await supabase
@@ -40,15 +39,21 @@ export default async function handler(req, res) {
             console.log("[Supabase] Successfully logged spawn for:", pet.species);
         }
 
-        // 2. Forward to Discord Webhook
+        // 2. Forward to Discord Webhook with clickable Join Links
         const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
         if (webhookUrl) {
             const attributesText = Object.keys(pet.attributes).length > 0 
                 ? Object.entries(pet.attributes).map(([k, v]) => `• **${k}**: ${v}`).join("\n") 
                 : "None";
 
+            // Roblox deep-linking formats to join a specific JobID server:
+            const appJoinLink = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${serverId}`;
+            const webJoinLink = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${serverId}`;
+
             const embed = {
                 title: `🚨 Wild Pet Spawned: ${pet.species}!`,
+                // Adding clickable markdown links right inside the embed description
+                description: `🎮 **[Click to Join Server (Roblox App)](${appJoinLink})**\n🌐 **[Click to Join Server (Browser)](${webJoinLink})**`,
                 color: 3462041,
                 fields: [
                     { name: "Species", value: pet.species, inline: true },
