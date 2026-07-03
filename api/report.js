@@ -1,40 +1,60 @@
-export default async function handler(req, res) {
+// api/report.js
+module.exports = async function handler(req, res) {
     if (req.method !== "POST") {
         return res.status(405).json({
             success: false,
-            message: "Method not allowed. Use POST."
+            message: "Method Not Allowed"
         });
     }
 
-    try {
-        const { scannerId, species, serverId } = req.body || {};
+    const data = req.body;
+    console.log("Received payload:", data);
 
-        if (!scannerId || !species || !serverId) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields",
-                received: req.body
-            });
-        }
+    const { type, placeId, serverId, pet } = data;
 
-        console.log("📥 Received:", req.body);
-
+    if (type === "heartbeat") {
         return res.status(200).json({
             success: true,
-            message: "API working correctly",
-            data: {
-                scannerId,
-                species,
-                serverId
-            }
-        });
-
-    } catch (err) {
-        console.error("Server error:", err);
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
+            message: "Heartbeat received!"
         });
     }
+
+    if (type === "report" && pet) {
+        const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+        
+        if (webhookUrl) {
+            const attributesText = Object.keys(pet.attributes).length > 0 
+                ? Object.entries(pet.attributes).map(([k, v]) => `• **${k}**: ${v}`).join("\n") 
+                : "None";
+
+            const embed = {
+                title: `🚨 Wild Pet Spawned: ${pet.species}!`,
+                color: 3462041,
+                fields: [
+                    { name: "Species", value: pet.species, inline: true },
+                    { name: "Distance", value: `${pet.distance} studs`, inline: true },
+                    { name: "Position", value: `\`X: ${Math.round(pet.position.x)}, Y: ${Math.round(pet.position.y)}, Z: ${Math.round(pet.position.z)}\`` },
+                    { name: "Attributes", value: attributesText },
+                    { name: "Place ID", value: String(placeId), inline: true },
+                    { name: "Server ID", value: `\`${serverId}\`` }
+                ],
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ embeds: [embed] })
+                });
+            } catch (err) {
+                console.error("Error forwarding to Discord:", err);
+            }
+        }
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Report received!"
+    });
 }
