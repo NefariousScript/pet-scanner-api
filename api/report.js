@@ -171,14 +171,14 @@ export default async function handler(req, res) {
 
     if (type === "report" && pet) {
         
-        // 1. DEDUPLICATION CHECK
+        // 1. DEDUPLICATION CHECK (Before inserting or sending Webhook)
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
         try {
             const { data: existingSpawns, error: checkError } = await supabase
                 .from("reports")
                 .select("id")
-                .eq("serverId", serverId) // Changed back to capital 'I'
+                .eq("serverId", serverId)
                 .eq("species", pet.species)
                 .gte("created_at", fiveMinutesAgo);
 
@@ -198,7 +198,6 @@ export default async function handler(req, res) {
         }
 
         // 2. Insert report details into your Supabase Database
-        // Note: Column names changed back to match exact capital 'Id'
         const { error: dbError } = await supabase
             .from("reports")
             .insert([
@@ -209,11 +208,16 @@ export default async function handler(req, res) {
                 }
             ]);
 
+        // NEW: If the database write fails, stop and return the exact error to Roblox!
         if (dbError) {
             console.error("[Supabase Error] Failed to log spawn:", dbError);
-        } else {
-            console.log("[Supabase] Successfully logged spawn for:", pet.species);
+            return res.status(500).json({
+                success: false,
+                error: `Database Insert Error: ${dbError.message || JSON.stringify(dbError)}`
+            });
         }
+
+        console.log("[Supabase] Successfully logged spawn for:", pet.species);
 
         // 3. Fetch configured pet layout metadata
         let baseSpecies = "Unknown";
@@ -254,17 +258,20 @@ export default async function handler(req, res) {
                 mentionContent = "@everyone";
             }
 
+            // Force a ping and neon pink coloring if the pet is Huge, Big, or Rainbow!
             if (isRainbow || isHuge || isBig) {
                 mentionContent = "@everyone";
                 embedColor = 0xff00ff;
             }
 
+            // Create dynamic title based on mutation state
             let embedTitle = `✦ ${petConfig.emoji} DISCOVERED: ${baseSpecies.toUpperCase()} ✦`;
             if (isRainbow || isHuge || isBig) {
                 const variantName = `${isRainbow ? "RAINBOW" : ""} ${isHuge ? "HUGE" : isBig ? "BIG" : ""}`.trim();
                 embedTitle = `✨ ${petConfig.emoji} ${variantName} ${baseSpecies.toUpperCase()} DISCOVERED ✨`;
             }
 
+            // Construct specs display with details on size/type
             let specsBlock = `• **Rarity:** ${petConfig.rarity}\n`;
             if (isRainbow) {
                 specsBlock += `• **Mutation:** 🌈 \`RAINBOW\`\n`;
