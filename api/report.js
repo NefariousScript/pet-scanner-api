@@ -2,8 +2,6 @@
 import { supabase } from "../lib/supabase.js";
 
 // === PET CONFIGURATION DATABASE ===
-// We have pointed every image directly to your newly uploaded GitHub root files.
-// For files with spaces (like Bald Eagle and Dragon Fly), we have encoded the spaces using "%20".
 const PET_DATABASE = {
     "Frog": {
         emoji: "🐸",
@@ -56,7 +54,7 @@ const PET_DATABASE = {
         rarity: "🟡 Legendary",
         color: 0xfee75c, // Yellow
         price: "Sheckles",
-        description: "Flutters around and helps everyone's plants grow 3% faster",
+        description: "Flatters around and helps everyone's plants grow 3% faster",
         image: "https://pet-scanner-api.vercel.app/butterfly.gif"
     },
     "Robin": {
@@ -84,7 +82,7 @@ const PET_DATABASE = {
         color: 0xed4245, // Red
         price: "Sheckles",
         description: "Snatches intruders and flies them out of your garden",
-        image: "https://pet-scanner-api.vercel.app/bald%20eagle.gif" // Space encoded with %20
+        image: "https://pet-scanner-api.vercel.app/bald%20eagle.gif"
     },
     "Bear": {
         emoji: "🐻",
@@ -111,7 +109,7 @@ const PET_DATABASE = {
         color: 0xed4245,
         price: "9M Sheckles",
         description: "Increases the gold chance by 2 times",
-        image: "https://pet-scanner-api.vercel.app/dragon%20fly.gif" // Space encoded with %20
+        image: "https://pet-scanner-api.vercel.app/dragon%20fly.gif"
     },
     "Unicorn": {
         emoji: "🦄",
@@ -129,7 +127,7 @@ const PET_DATABASE = {
         color: 0x9b59b6, // Purple
         price: "15M Sheckles",
         description: "Sneaks out at night to attempt to steal from other players, and increases your steal capacity",
-        image: "https://pet-scanner-api.vercel.app/raccon.gif" // Matches your "raccon.gif" spelling
+        image: "https://pet-scanner-api.vercel.app/raccon.gif"
     },
     "Black Dragon": {
         emoji: "🐉",
@@ -242,12 +240,13 @@ export default async function handler(req, res) {
 
             const embed = {
                 title: `✦ ${petConfig.emoji} DISCOVERED: ${pet.species.toUpperCase()} ✦`,
+                // Changed "Spawned:" label to "Time Left:" to align with the countdown timer
                 description: `*${petConfig.description}*\n\n` +
                              `**📋 PET SPECS**\n` +
                              `• **Rarity:** ${petConfig.rarity}\n` +
                              `• **Spawn Rate:** \`${petConfig.ratio}\` \n` +
                              `• **Cost:** \`${petConfig.price}\` \n` +
-                             `• **Spawned:** ${relativeTimeStr}\n\n` +
+                             `• **Time Left:** ⏳ ${relativeTimeStr}\n\n` +
                              `**🎮 CONNECTIVITY**\n` +
                              `• **[Instant Launch: Warp Directly to Server](${customProtocolJoinLink})**\n\n` +
                              `**💻 EXECUTOR JOIN CODE**\n` +
