@@ -2,6 +2,8 @@
 import { supabase } from "../lib/supabase.js";
 
 // === PET CONFIGURATION DATABASE ===
+// We have pointed every image directly to your newly uploaded GitHub root files.
+// For files with spaces (like Bald Eagle and Dragon Fly), we have encoded the spaces using "%20".
 const PET_DATABASE = {
     "Frog": {
         emoji: "🐸",
@@ -10,7 +12,7 @@ const PET_DATABASE = {
         color: 0x98a0a6, // Gray
         price: "10K Sheckles",
         description: "Hops around your garden and boosts your jump height by +5",
-        image: "https://i.imgur.com/3911075_frog.png"
+        image: "https://pet-scanner-api.vercel.app/frog.gif"
     },
     "Bunny": {
         emoji: "🐰",
@@ -19,7 +21,7 @@ const PET_DATABASE = {
         color: 0x98a0a6,
         price: "20K Sheckles",
         description: "Hops around the garden and boosts the walk speed by +5",
-        image: "https://i.imgur.com/your-bunny.png"
+        image: "https://pet-scanner-api.vercel.app/bunny.gif"
     },
     "Owl": {
         emoji: "🦉",
@@ -28,7 +30,7 @@ const PET_DATABASE = {
         color: 0x57f287, // Green
         price: "25K Sheckles",
         description: "Extends your view distance by 12.5% at night, and hoots loudly when a rare pet spawns",
-        image: "https://i.imgur.com/your-owl.png"
+        image: "https://pet-scanner-api.vercel.app/owl.gif"
     },
     "Deer": {
         emoji: "🦌",
@@ -37,7 +39,7 @@ const PET_DATABASE = {
         color: 0x3498db, // Blue
         price: "50K Sheckles",
         description: "Trots around the garden and helps plants grow 10% faster",
-        image: "https://i.imgur.com/your-deer.png"
+        image: "https://pet-scanner-api.vercel.app/deer.gif"
     },
     "Turtle": {
         emoji: "🐢",
@@ -46,16 +48,25 @@ const PET_DATABASE = {
         color: 0x3498db,
         price: "70K Sheckles",
         description: "Adds +10 backpack space but slows your walk speed by 2 (Stacks)",
-        image: "https://i.imgur.com/your-turtle.png"
+        image: "https://pet-scanner-api.vercel.app/turtle.gif"
+    },
+    "Butterfly": {
+        emoji: "🦋",
+        ratio: "1 in 42",
+        rarity: "🟡 Legendary",
+        color: 0xfee75c, // Yellow
+        price: "Sheckles",
+        description: "Flutters around and helps everyone's plants grow 3% faster",
+        image: "https://pet-scanner-api.vercel.app/butterfly.gif"
     },
     "Robin": {
         emoji: "🐦",
         ratio: "1 in 50",
         rarity: "🟡 Legendary",
-        color: 0xfee75c, // Yellow
+        color: 0xfee75c,
         price: "75K Sheckles",
         description: "Flies around the garden, eating ripe fruits and dropping seeds",
-        image: "https://i.imgur.com/your-robin.png"
+        image: "https://pet-scanner-api.vercel.app/robin.gif"
     },
     "Bee": {
         emoji: "🐝",
@@ -64,16 +75,25 @@ const PET_DATABASE = {
         color: 0xfee75c,
         price: "1M Sheckles",
         description: "Patrols your garden and swarms intruders to defend your fruit",
-        image: "https://i.imgur.com/your-bee.png"
+        image: "https://pet-scanner-api.vercel.app/bee.gif"
+    },
+    "Bald Eagle": {
+        emoji: "🦅",
+        ratio: "1 in 444",
+        rarity: "🔴 Mythic",
+        color: 0xed4245, // Red
+        price: "Sheckles",
+        description: "Snatches intruders and flies them out of your garden",
+        image: "https://pet-scanner-api.vercel.app/bald%20eagle.gif" // Space encoded with %20
     },
     "Bear": {
         emoji: "🐻",
         ratio: "1 in 500",
         rarity: "🔴 Mythic",
-        color: 0xed4245, // Red
+        color: 0xed4245,
         price: "5M Sheckles",
         description: "Tackles intruders by pinning them down and throwing them out of your garden",
-        image: "https://i.imgur.com/your-bear.png"
+        image: "https://pet-scanner-api.vercel.app/bear.gif"
     },
     "Monkey": {
         emoji: "🐵",
@@ -82,7 +102,7 @@ const PET_DATABASE = {
         color: 0xed4245,
         price: "3M Sheckles",
         description: "Brings ripe fruits straight to you",
-        image: "https://i.imgur.com/your-monkey.png"
+        image: "https://pet-scanner-api.vercel.app/monkey.gif"
     },
     "Golden Dragonfly": {
         emoji: "🧚",
@@ -91,7 +111,7 @@ const PET_DATABASE = {
         color: 0xed4245,
         price: "9M Sheckles",
         description: "Increases the gold chance by 2 times",
-        image: "https://i.imgur.com/your-dragonfly.png"
+        image: "https://pet-scanner-api.vercel.app/dragon%20fly.gif" // Space encoded with %20
     },
     "Unicorn": {
         emoji: "🦄",
@@ -100,7 +120,7 @@ const PET_DATABASE = {
         color: 0xed4245,
         price: "12M Sheckles",
         description: "Trots around the garden and doubles the chance of fruits turning rainbow",
-        image: "https://i.imgur.com/your-unicorn.png"
+        image: "https://pet-scanner-api.vercel.app/unicorn.gif"
     },
     "Raccoon": {
         emoji: "🦝",
@@ -109,7 +129,7 @@ const PET_DATABASE = {
         color: 0x9b59b6, // Purple
         price: "15M Sheckles",
         description: "Sneaks out at night to attempt to steal from other players, and increases your steal capacity",
-        image: "https://i.imgur.com/your-raccoon.png"
+        image: "https://pet-scanner-api.vercel.app/raccon.gif" // Matches your "raccon.gif" spelling
     },
     "Black Dragon": {
         emoji: "🐉",
@@ -118,7 +138,7 @@ const PET_DATABASE = {
         color: 0x9b59b6,
         price: "20M Sheckles",
         description: "A legendary dragon companion that defends your garden with destructive fire breath",
-        image: "https://i.imgur.com/your-dragon.png"
+        image: "https://pet-scanner-api.vercel.app/dragon.gif"
     },
     "Ice Serpent": {
         emoji: "🐍",
@@ -127,7 +147,7 @@ const PET_DATABASE = {
         color: 0x9b59b6,
         price: "Guild Reward",
         description: "Protects your guard by hitting intruders with a frost breath, freezing them in place",
-        image: "https://i.imgur.com/your-serpent.png"
+        image: "https://pet-scanner-api.vercel.app/serpent.gif"
     }
 };
 
