@@ -198,17 +198,18 @@ export default async function handler(req, res) {
         }
 
         // 2. Insert report details into your Supabase Database
+        // Note: We now generate and pass "created_at" manually in the payload to bypass missing database defaults!
         const { error: dbError } = await supabase
             .from("reports")
             .insert([
                 {
                     scannerId: scannerId,
                     species: pet.species,
-                    serverId: serverId
+                    serverId: serverId,
+                    created_at: new Date().toISOString() // Explicitly pass generated ISO timestamp
                 }
             ]);
 
-        // NEW: If the database write fails, stop and return the exact error to Roblox!
         if (dbError) {
             console.error("[Supabase Error] Failed to log spawn:", dbError);
             return res.status(500).json({
@@ -258,20 +259,17 @@ export default async function handler(req, res) {
                 mentionContent = "@everyone";
             }
 
-            // Force a ping and neon pink coloring if the pet is Huge, Big, or Rainbow!
             if (isRainbow || isHuge || isBig) {
                 mentionContent = "@everyone";
                 embedColor = 0xff00ff;
             }
 
-            // Create dynamic title based on mutation state
             let embedTitle = `✦ ${petConfig.emoji} DISCOVERED: ${baseSpecies.toUpperCase()} ✦`;
             if (isRainbow || isHuge || isBig) {
                 const variantName = `${isRainbow ? "RAINBOW" : ""} ${isHuge ? "HUGE" : isBig ? "BIG" : ""}`.trim();
                 embedTitle = `✨ ${petConfig.emoji} ${variantName} ${baseSpecies.toUpperCase()} DISCOVERED ✨`;
             }
 
-            // Construct specs display with details on size/type
             let specsBlock = `• **Rarity:** ${petConfig.rarity}\n`;
             if (isRainbow) {
                 specsBlock += `• **Mutation:** 🌈 \`RAINBOW\`\n`;
