@@ -8,7 +8,7 @@ const PET_DATABASE = {
         ratio: "1 in 8",
         rarity: "⚪ Common",
         color: 0x98a0a6, // Gray
-        price: "10K",
+        price: "10K Sheckles",
         description: "Hops around your garden and boosts your jump height by +5",
         image: "https://i.imgur.com/3911075_frog.png"
     },
@@ -17,7 +17,7 @@ const PET_DATABASE = {
         ratio: "1 in 8",
         rarity: "⚪ Common",
         color: 0x98a0a6,
-        price: "20K",
+        price: "20K Sheckles",
         description: "Hops around the garden and boosts the walk speed by +5",
         image: "https://i.imgur.com/your-bunny.png"
     },
@@ -26,7 +26,7 @@ const PET_DATABASE = {
         ratio: "1 in 12",
         rarity: "🟢 Uncommon",
         color: 0x57f287, // Green
-        price: "25K",
+        price: "25K Sheckles",
         description: "Extends your view distance by 12.5% at night, and hoots loudly when a rare pet spawns",
         image: "https://i.imgur.com/your-owl.png"
     },
@@ -35,7 +35,7 @@ const PET_DATABASE = {
         ratio: "1 in 20",
         rarity: "🔵 Rare",
         color: 0x3498db, // Blue
-        price: "50K",
+        price: "50K Sheckles",
         description: "Trots around the garden and helps plants grow 10% faster",
         image: "https://i.imgur.com/your-deer.png"
     },
@@ -44,7 +44,7 @@ const PET_DATABASE = {
         ratio: "1 in 25",
         rarity: "🔵 Rare",
         color: 0x3498db,
-        price: "70K",
+        price: "70K Sheckles",
         description: "Adds +10 backpack space but slows your walk speed by 2 (Stacks)",
         image: "https://i.imgur.com/your-turtle.png"
     },
@@ -53,7 +53,7 @@ const PET_DATABASE = {
         ratio: "1 in 50",
         rarity: "🟡 Legendary",
         color: 0xfee75c, // Yellow
-        price: "75K",
+        price: "75K Sheckles",
         description: "Flies around the garden, eating ripe fruits and dropping seeds",
         image: "https://i.imgur.com/your-robin.png"
     },
@@ -62,7 +62,7 @@ const PET_DATABASE = {
         ratio: "1 in 100",
         rarity: "🟡 Legendary",
         color: 0xfee75c,
-        price: "1M",
+        price: "1M Sheckles",
         description: "Patrols your garden and swarms intruders to defend your fruit",
         image: "https://i.imgur.com/your-bee.png"
     },
@@ -71,7 +71,7 @@ const PET_DATABASE = {
         ratio: "1 in 500",
         rarity: "🔴 Mythic",
         color: 0xed4245, // Red
-        price: "5M",
+        price: "5M Sheckles",
         description: "Tackles intruders by pinning them down and throwing them out of your garden",
         image: "https://i.imgur.com/your-bear.png"
     },
@@ -80,7 +80,7 @@ const PET_DATABASE = {
         ratio: "1 in 300",
         rarity: "🔴 Mythic",
         color: 0xed4245,
-        price: "3M",
+        price: "3M Sheckles",
         description: "Brings ripe fruits straight to you",
         image: "https://i.imgur.com/your-monkey.png"
     },
@@ -89,7 +89,7 @@ const PET_DATABASE = {
         ratio: "1 in 900",
         rarity: "🔴 Mythic",
         color: 0xed4245,
-        price: "9M",
+        price: "9M Sheckles",
         description: "Increases the gold chance by 2 times",
         image: "https://i.imgur.com/your-dragonfly.png"
     },
@@ -98,7 +98,7 @@ const PET_DATABASE = {
         ratio: "1 in 1200",
         rarity: "🔴 Mythic",
         color: 0xed4245,
-        price: "12M",
+        price: "12M Sheckles",
         description: "Trots around the garden and doubles the chance of fruits turning rainbow",
         image: "https://i.imgur.com/your-unicorn.png"
     },
@@ -107,7 +107,7 @@ const PET_DATABASE = {
         ratio: "1 in 1500",
         rarity: "🟣 Super",
         color: 0x9b59b6, // Purple
-        price: "15M",
+        price: "15M Sheckles",
         description: "Sneaks out at night to attempt to steal from other players, and increases your steal capacity",
         image: "https://i.imgur.com/your-raccoon.png"
     },
@@ -116,7 +116,7 @@ const PET_DATABASE = {
         ratio: "1 in 2500",
         rarity: "🟣 Super",
         color: 0x9b59b6,
-        price: "20M",
+        price: "20M Sheckles",
         description: "A legendary dragon companion that defends your garden with destructive fire breath",
         image: "https://i.imgur.com/your-dragon.png"
     },
@@ -154,7 +154,6 @@ export default async function handler(req, res) {
     if (type === "report" && pet) {
         
         // 1. DEDUPLICATION CHECK (Before inserting or sending Webhook)
-        // Calculate the threshold timestamp (5 minutes ago)
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
         try {
@@ -169,7 +168,6 @@ export default async function handler(req, res) {
                 console.error("[Supabase Error] Duplicate check failed:", checkError);
             }
 
-            // If a record already exists, suppress the report
             if (existingSpawns && existingSpawns.length > 0) {
                 console.log(`[Deduplication] Suppressed duplicate alert: ${pet.species} on server ${serverId}`);
                 return res.status(200).json({
@@ -223,36 +221,19 @@ export default async function handler(req, res) {
             }
 
             const embed = {
-                title: `${pet.species} ${petConfig.emoji} (${petConfig.ratio})`,
-                description: `> *${petConfig.description}*\n\n` +
-                             `🎮 **[Click to Join Server](${customProtocolJoinLink})**\n\n` +
-                             `💻 **Join with Script**\n` +
+                title: `✦ ${petConfig.emoji} DISCOVERED: ${pet.species.toUpperCase()} ✦`,
+                description: `*${petConfig.description}*\n\n` +
+                             `**📋 PET SPECS**\n` +
+                             `• **Rarity:** ${petConfig.rarity}\n` +
+                             `• **Spawn Rate:** \`${petConfig.ratio}\` \n` +
+                             `• **Cost:** \`${petConfig.price}\` \n` +
+                             `• **Spawned:** ${relativeTimeStr}\n\n` +
+                             `**🎮 CONNECTIVITY**\n` +
+                             `• **[Instant Launch: Warp Directly to Server](${customProtocolJoinLink})**\n\n` +
+                             `**💻 EXECUTOR JOIN CODE**\n` +
                              `\`\`\`lua\n${luaTeleportCode}\n\`\`\``,
                 color: petConfig.color,
-                fields: [
-                    {
-                        name: "Rarity",
-                        value: petConfig.rarity,
-                        inline: true
-                    },
-                    {
-                        name: "💰 Price",
-                        value: petConfig.price,
-                        inline: true
-                    },
-                    {
-                        name: "Time Left",
-                        value: `⏳ ${relativeTimeStr}`,
-                        inline: true
-                    }
-                ],
-                thumbnail: petConfig.image ? { url: petConfig.image } : undefined,
-                author: {
-                    name: "🐾 Pet Found!"
-                },
-                footer: {
-                    text: "Star's Finder • Grow a Garden 2 • discord.gg/DqmAVVGQcw"
-                }
+                thumbnail: petConfig.image ? { url: petConfig.image } : undefined
             };
 
             try {
