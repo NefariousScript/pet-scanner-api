@@ -54,7 +54,7 @@ const PET_DATABASE = {
         rarity: "🟡 Legendary",
         color: 0xfee75c, // Yellow
         price: "Sheckles",
-        description: "Flatters around and helps everyone's plants grow 3% faster",
+        description: "Flutters around and helps everyone's plants grow 3% faster",
         image: "https://pet-scanner-api.vercel.app/butterfly.gif"
     },
     "Robin": {
@@ -171,7 +171,7 @@ export default async function handler(req, res) {
 
     if (type === "report" && pet) {
         
-        // 1. DEDUPLICATION CHECK (Before inserting or sending Webhook)
+        // 1. DEDUPLICATION CHECK
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
         try {
@@ -197,7 +197,7 @@ export default async function handler(req, res) {
             console.error("[Server Error] Failed during deduplication check:", err);
         }
 
-        // 2. Insert report details into your Supabase Database (Only if it's unique)
+        // 2. Insert report details into your Supabase Database
         const { error: dbError } = await supabase
             .from("reports")
             .insert([
@@ -232,26 +232,54 @@ export default async function handler(req, res) {
             const luaTeleportCode = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${serverId}", game.Players.LocalPlayer)`;
             const relativeTimeStr = `<t:${timestamp || Math.floor(Date.now() / 1000)}:R>`;
 
-            // Dynamic @everyone notification for Mythics and Supers
+            // 4. EXTRACT MUTATIONS & SIZE VARIANTS
+            const petSize = pet.attributes?.Size || "Normal";
+            const petType = pet.attributes?.Type || "Normal"; // e.g., "Rainbow"
+            const isMutated = petSize === "Big" || petSize === "Huge" || petType === "Rainbow";
+
+            // Determine Rarity Colors and Mentions
+            let embedColor = petConfig.color;
             let mentionContent = "";
+
             if (petConfig.rarity.includes("Mythic") || petConfig.rarity.includes("Super")) {
                 mentionContent = "@everyone";
             }
 
+            // Force a ping and neon pink coloring if the pet is Huge, Big, or Rainbow!
+            if (isMutated) {
+                mentionContent = "@everyone";
+                embedColor = 0xff00ff; // Brilliant Neon Pink/Magenta
+            }
+
+            // Create dynamic title based on mutation state
+            let embedTitle = `✦ ${petConfig.emoji} DISCOVERED: ${pet.species.toUpperCase()} ✦`;
+            if (isMutated) {
+                const variantName = `${petType !== "Normal" ? petType : ""} ${petSize !== "Normal" ? petSize : ""}`.trim().toUpperCase();
+                embedTitle = `✨ ${petConfig.emoji} ${variantName} ${pet.species.toUpperCase()} DISCOVERED ✨`;
+            }
+
+            // Construct specs display with details on size/type
+            let specsBlock = `• **Rarity:** ${petConfig.rarity}\n`;
+            if (petType !== "Normal") {
+                specsBlock += `• **Mutation:** 🌈 \`${petType.toUpperCase()}\`\n`;
+            }
+            if (petSize !== "Normal") {
+                specsBlock += `• **Size Variant:** 📏 \`${petSize.toUpperCase()}\`\n`;
+            }
+            specsBlock += `• **Spawn Rate:** \`${petConfig.ratio}\` \n` +
+                         `• **Cost:** \`${petConfig.price}\` \n` +
+                         `• **Time Left:** ⏳ ${relativeTimeStr}`;
+
             const embed = {
-                title: `✦ ${petConfig.emoji} DISCOVERED: ${pet.species.toUpperCase()} ✦`,
-                // Changed "Spawned:" label to "Time Left:" to align with the countdown timer
+                title: embedTitle,
                 description: `*${petConfig.description}*\n\n` +
                              `**📋 PET SPECS**\n` +
-                             `• **Rarity:** ${petConfig.rarity}\n` +
-                             `• **Spawn Rate:** \`${petConfig.ratio}\` \n` +
-                             `• **Cost:** \`${petConfig.price}\` \n` +
-                             `• **Time Left:** ⏳ ${relativeTimeStr}\n\n` +
+                             specsBlock + `\n\n` +
                              `**🎮 CONNECTIVITY**\n` +
                              `• **[Instant Launch: Warp Directly to Server](${customProtocolJoinLink})**\n\n` +
                              `**💻 EXECUTOR JOIN CODE**\n` +
                              `\`\`\`lua\n${luaTeleportCode}\n\`\`\``,
-                color: petConfig.color,
+                color: embedColor,
                 thumbnail: petConfig.image ? { url: petConfig.image } : undefined
             };
 
