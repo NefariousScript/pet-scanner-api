@@ -171,14 +171,14 @@ export default async function handler(req, res) {
 
     if (type === "report" && pet) {
         
-        // 1. DEDUPLICATION CHECK (Before inserting or sending Webhook)
+        // 1. DEDUPLICATION CHECK
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
         try {
             const { data: existingSpawns, error: checkError } = await supabase
                 .from("reports")
                 .select("id")
-                .eq("serverId", serverId)
+                .eq("serverId", serverId) // Changed back to capital 'I'
                 .eq("species", pet.species)
                 .gte("created_at", fiveMinutesAgo);
 
@@ -197,7 +197,8 @@ export default async function handler(req, res) {
             console.error("[Server Error] Failed during deduplication check:", err);
         }
 
-        // 2. Insert report details into your Supabase Database (Only if it's unique)
+        // 2. Insert report details into your Supabase Database
+        // Note: Column names changed back to match exact capital 'Id'
         const { error: dbError } = await supabase
             .from("reports")
             .insert([
@@ -214,7 +215,7 @@ export default async function handler(req, res) {
             console.log("[Supabase] Successfully logged spawn for:", pet.species);
         }
 
-        // 3. Extract core base species name from mutated full species name (e.g. "Rainbow Huge Frog" -> "Frog")
+        // 3. Fetch configured pet layout metadata
         let baseSpecies = "Unknown";
         for (const key of Object.keys(PET_DATABASE)) {
             if (pet.species.toLowerCase().includes(key.toLowerCase())) {
@@ -223,7 +224,6 @@ export default async function handler(req, res) {
             }
         }
 
-        // Fetch configured pet layout metadata
         const petConfig = PET_DATABASE[baseSpecies] || {
             emoji: "🐾",
             ratio: "1 in ?",
@@ -254,20 +254,17 @@ export default async function handler(req, res) {
                 mentionContent = "@everyone";
             }
 
-            // Force a ping and neon pink coloring if the pet is Huge, Big, or Rainbow!
             if (isRainbow || isHuge || isBig) {
                 mentionContent = "@everyone";
-                embedColor = 0xff00ff; // Brilliant Neon Pink/Magenta
+                embedColor = 0xff00ff;
             }
 
-            // Create dynamic title based on mutation state
             let embedTitle = `✦ ${petConfig.emoji} DISCOVERED: ${baseSpecies.toUpperCase()} ✦`;
             if (isRainbow || isHuge || isBig) {
                 const variantName = `${isRainbow ? "RAINBOW" : ""} ${isHuge ? "HUGE" : isBig ? "BIG" : ""}`.trim();
                 embedTitle = `✨ ${petConfig.emoji} ${variantName} ${baseSpecies.toUpperCase()} DISCOVERED ✨`;
             }
 
-            // Construct specs display with details on size/type
             let specsBlock = `• **Rarity:** ${petConfig.rarity}\n`;
             if (isRainbow) {
                 specsBlock += `• **Mutation:** 🌈 \`RAINBOW\`\n`;
