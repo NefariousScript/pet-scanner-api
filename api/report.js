@@ -46,15 +46,15 @@ export default async function handler(req, res) {
                 ? Object.entries(pet.attributes).map(([k, v]) => `• **${k}**: ${v}`).join("\n") 
                 : "None";
 
-            // Extension-friendly web join link format
-            const webJoinLink = `https://www.roblox.com/games/${placeId}?serverJobId=${serverId}`;
+            // Points to your brand new Vercel protocol redirect launcher!
+            const customProtocolJoinLink = `https://pet-scanner-api.vercel.app/api/start?placeId=${placeId}&gameInstanceId=${serverId}`;
             
             // Raw Lua code you can run inside an executor to force-join the server
             const luaTeleportCode = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${serverId}", game.Players.LocalPlayer)`;
 
             const embed = {
                 title: `🚨 Wild Pet Spawned: ${pet.species}!`,
-                description: `🌐 **[Browser Join Link (Requires JobId Join Extension)](${webJoinLink})**\n\n` +
+                description: `🚀 **[Click to Instant-Join Server (Bypasses Roblox Site)](${customProtocolJoinLink})**\n\n` +
                              `💻 **Executor Copy-Paste Code (Runs instantly on any Executor):**\n` +
                              `\`\`\`lua\n${luaTeleportCode}\n\`\`\``,
                 color: 3462041,
