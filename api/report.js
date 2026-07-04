@@ -46,14 +46,17 @@ export default async function handler(req, res) {
                 ? Object.entries(pet.attributes).map(([k, v]) => `• **${k}**: ${v}`).join("\n") 
                 : "None";
 
-            // Roblox deep-linking formats to join a specific JobID server:
-            const appJoinLink = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${serverId}`;
-            const webJoinLink = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${serverId}`;
+            // Extension-friendly web join link format
+            const webJoinLink = `https://www.roblox.com/games/${placeId}?serverJobId=${serverId}`;
+            
+            // Raw Lua code you can run inside an executor to force-join the server
+            const luaTeleportCode = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${serverId}", game.Players.LocalPlayer)`;
 
             const embed = {
                 title: `🚨 Wild Pet Spawned: ${pet.species}!`,
-                // Adding clickable markdown links right inside the embed description
-                description: `🎮 **[Click to Join Server (Roblox App)](${appJoinLink})**\n🌐 **[Click to Join Server (Browser)](${webJoinLink})**`,
+                description: `🌐 **[Browser Join Link (Requires JobId Join Extension)](${webJoinLink})**\n\n` +
+                             `💻 **Executor Copy-Paste Code (Runs instantly on any Executor):**\n` +
+                             `\`\`\`lua\n${luaTeleportCode}\n\`\`\``,
                 color: 3462041,
                 fields: [
                     { name: "Species", value: pet.species, inline: true },
