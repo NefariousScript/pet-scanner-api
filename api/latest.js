@@ -7,7 +7,6 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Query the single newest row inside your Supabase "reports" table
         const { data, error } = await supabase
             .from("reports")
             .select("*")
@@ -22,7 +21,22 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, latest: null });
         }
 
-        return res.status(200).json({ success: true, latest: data[0] });
+        const latest = data[0];
+        
+        // Calculate age
+        const createdAtTime = new Date(latest.created_at).getTime();
+        const ageInSeconds = Math.floor((Date.now() - createdAtTime) / 1000);
+
+        return res.status(200).json({ 
+            success: true, 
+            latest: {
+                id: latest.id,
+                scannerId: latest.scannerId, // Changed back to capital 'Id'
+                species: latest.species,
+                serverId: latest.serverId,   // Changed back to capital 'Id'
+                age: ageInSeconds
+            } 
+        });
     } catch (err) {
         return res.status(500).json({ success: false, error: err.message });
     }
