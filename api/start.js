@@ -17,9 +17,10 @@ export default function handler(req, res) {
         return res.status(400).send("Missing placeId or gameInstanceId parameters.");
     }
 
-    // Redirect to the public, native Server-Joiner lobby game on Roblox (Place: 16302670534).
-    // This lobby reads the target Place ID and Server ID from 'launchData' and teleports the player instantly.
-    const robloxJoinLobbyUrl = `https://www.roblox.com/games/start?placeId=16302670534&launchData=${placeId}/${gameInstanceId}`;
+    // The active, open-source community redirector lobby is: 17118259388
+    // It expects the target PlaceId and JobId merged together: <PlaceId><JobId>
+    const combinedLaunchData = `${placeId}${gameInstanceId}`;
+    const robloxJoinLobbyUrl = `https://www.roblox.com/games/start?placeId=17118259388&launchData=${combinedLaunchData}`;
 
     // Perform an instant browser-level redirect to the official Roblox launch route
     res.writeHead(302, { Location: robloxJoinLobbyUrl });
