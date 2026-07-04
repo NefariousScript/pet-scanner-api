@@ -171,7 +171,7 @@ export default async function handler(req, res) {
 
     if (type === "report" && pet) {
         
-        // 1. DEDUPLICATION CHECK
+        // 1. DEDUPLICATION CHECK (Before inserting or sending Webhook)
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
         try {
@@ -197,7 +197,7 @@ export default async function handler(req, res) {
             console.error("[Server Error] Failed during deduplication check:", err);
         }
 
-        // 2. Insert report details into your Supabase Database
+        // 2. Insert report details into your Supabase Database (Only if it's unique)
         const { error: dbError } = await supabase
             .from("reports")
             .insert([
@@ -214,8 +214,17 @@ export default async function handler(req, res) {
             console.log("[Supabase] Successfully logged spawn for:", pet.species);
         }
 
-        // 3. Fetch configured pet layout metadata
-        const petConfig = PET_DATABASE[pet.species] || {
+        // 3. Extract core base species name from mutated full species name (e.g. "Rainbow Huge Frog" -> "Frog")
+        let baseSpecies = "Unknown";
+        for (const key of Object.keys(PET_DATABASE)) {
+            if (pet.species.toLowerCase().includes(key.toLowerCase())) {
+                baseSpecies = key;
+                break;
+            }
+        }
+
+        // Fetch configured pet layout metadata
+        const petConfig = PET_DATABASE[baseSpecies] || {
             emoji: "🐾",
             ratio: "1 in ?",
             rarity: "⚪ Unknown",
@@ -232,10 +241,10 @@ export default async function handler(req, res) {
             const luaTeleportCode = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${serverId}", game.Players.LocalPlayer)`;
             const relativeTimeStr = `<t:${timestamp || Math.floor(Date.now() / 1000)}:R>`;
 
-            // 4. EXTRACT MUTATIONS & SIZE VARIANTS
-            const petSize = pet.attributes?.Size || "Normal";
-            const petType = pet.attributes?.Type || "Normal"; // e.g., "Rainbow"
-            const isMutated = petSize === "Big" || petSize === "Huge" || petType === "Rainbow";
+            // Extract Mutations & Sizes from database string
+            const isRainbow = pet.species.toLowerCase().includes("rainbow");
+            const isHuge = pet.species.toLowerCase().includes("huge");
+            const isBig = pet.species.toLowerCase().includes("big") && !isHuge;
 
             // Determine Rarity Colors and Mentions
             let embedColor = petConfig.color;
@@ -246,25 +255,25 @@ export default async function handler(req, res) {
             }
 
             // Force a ping and neon pink coloring if the pet is Huge, Big, or Rainbow!
-            if (isMutated) {
+            if (isRainbow || isHuge || isBig) {
                 mentionContent = "@everyone";
                 embedColor = 0xff00ff; // Brilliant Neon Pink/Magenta
             }
 
             // Create dynamic title based on mutation state
-            let embedTitle = `✦ ${petConfig.emoji} DISCOVERED: ${pet.species.toUpperCase()} ✦`;
-            if (isMutated) {
-                const variantName = `${petType !== "Normal" ? petType : ""} ${petSize !== "Normal" ? petSize : ""}`.trim().toUpperCase();
-                embedTitle = `✨ ${petConfig.emoji} ${variantName} ${pet.species.toUpperCase()} DISCOVERED ✨`;
+            let embedTitle = `✦ ${petConfig.emoji} DISCOVERED: ${baseSpecies.toUpperCase()} ✦`;
+            if (isRainbow || isHuge || isBig) {
+                const variantName = `${isRainbow ? "RAINBOW" : ""} ${isHuge ? "HUGE" : isBig ? "BIG" : ""}`.trim();
+                embedTitle = `✨ ${petConfig.emoji} ${variantName} ${baseSpecies.toUpperCase()} DISCOVERED ✨`;
             }
 
             // Construct specs display with details on size/type
             let specsBlock = `• **Rarity:** ${petConfig.rarity}\n`;
-            if (petType !== "Normal") {
-                specsBlock += `• **Mutation:** 🌈 \`${petType.toUpperCase()}\`\n`;
+            if (isRainbow) {
+                specsBlock += `• **Mutation:** 🌈 \`RAINBOW\`\n`;
             }
-            if (petSize !== "Normal") {
-                specsBlock += `• **Size Variant:** 📏 \`${petSize.toUpperCase()}\`\n`;
+            if (isHuge || isBig) {
+                specsBlock += `• **Size Variant:** 📏 \`${isHuge ? "HUGE" : "BIG"}\`\n`;
             }
             specsBlock += `• **Spawn Rate:** \`${petConfig.ratio}\` \n` +
                          `• **Cost:** \`${petConfig.price}\` \n` +
